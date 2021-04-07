@@ -32,17 +32,19 @@ func (i *PNGImporter) refreshCache() error {
 func (i *PNGImporter) MakeUI(win *ui.Window, recalcFunc func(int), index int) (ui.Control, error) {
 	form := ui.NewForm()
 	form.SetPadded(true)
-	filename := ""
 	hbox := ui.NewHorizontalBox()
 
 	form.Append("Blend Mode", makeBlendModeCb(&i.BlendMode), false)
 
 	fileShower := ui.NewEntry()
+	fileShower.SetText(i.Path)
+	fileShower.OnChanged(func(e *ui.Entry) {
+		i.Path = e.Text()
+	})
 	saveBtn := ui.NewButton("Select")
 	saveBtn.OnClicked(func(*ui.Button) {
-		filename = ui.OpenFile(win)
-		fileShower.SetText(filename)
-		i.Path = filename
+		i.Path = ui.OpenFile(win)
+		fileShower.SetText(i.Path)
 
 		err := i.refreshCache()
 		if err != nil {

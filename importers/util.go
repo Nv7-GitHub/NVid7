@@ -10,6 +10,7 @@ func makeBlendModeCb(blendModeVal *BlendMode) *ui.Combobox {
 		cb.Append(k)
 		blendModes[i] = BlendModeNames[k]
 	}
+	cb.SetSelected(0)
 	cb.OnSelected(func(c *ui.Combobox) {
 		*blendModeVal = blendModes[c.Selected()]
 	})

@@ -2,6 +2,7 @@ package main
 
 import (
 	"image"
+	"math"
 
 	"github.com/Nv7-Github/NVid7/importers"
 	"github.com/andlabs/ui"
@@ -20,6 +21,7 @@ type clipData struct {
 	trimLength int
 
 	x float64
+	y float64
 }
 
 type Sequencer struct {
@@ -98,8 +100,25 @@ func (s *Sequencer) MouseEvent(a *ui.Area, me *ui.AreaMouseEvent) {
 			s.dragging = false
 		}
 
-		s.clipDatas[s.selected].x += (me.X - s.dragStartX) / s.width
-		s.clipDatas[s.selected].startFrame = int(s.clipDatas[s.selected].x * float64(s.animationLength))
+		newX := s.clipDatas[s.selected].x + ((me.X - s.dragStartX) / s.width)
+		newY := s.clipDatas[s.selected].y + ((me.Y - s.dragStartY) / me.AreaHeight)
+		newFrame := int(s.clipDatas[s.selected].x * float64(s.animationLength))
+		newYIndex := int(math.Floor(newY / s.layerHeight))
+		endFrame := newFrame + s.clipDatas[s.selected].trimLength
+
+		for i, clip := range s.clipDatas {
+			if i == s.selected {
+				continue
+			}
+			if clip.yindex == newYIndex && ((newFrame >= clip.startFrame && newFrame <= (clip.startFrame+clip.trimLength)) || (endFrame >= clip.startFrame && endFrame <= (clip.startFrame+clip.trimLength))) {
+				return
+			}
+		}
+
+		s.clipDatas[s.selected].x = newX
+		s.clipDatas[s.selected].y = newY
+		s.clipDatas[s.selected].startFrame = newFrame
+		s.clipDatas[s.selected].yindex = newYIndex
 		s.dragStartX = me.X
 		s.dragStartY = me.Y
 		s.Update()
@@ -113,8 +132,14 @@ func (s *Sequencer) AddClip(clip importers.Importer) {
 	if length == -1 {
 		length = s.animationLength / 5
 	}
+	highestClipCount := -1
+	for _, clip := range s.clipDatas {
+		if clip.yindex > highestClipCount {
+			highestClipCount = clip.yindex
+		}
+	}
 	s.clipDatas = append(s.clipDatas, clipData{
-		yindex:     len(s.clipDatas),
+		yindex:     highestClipCount + 1,
 		startFrame: 0,
 		length:     length,
 		trimLength: length,
