@@ -36,14 +36,6 @@ func setupUI() {
 	inspector = ui.NewGroup("Inspector")
 	inspector.SetMargined(true)
 
-	// For testing
-	inspectorForm := ui.NewForm()
-	inspectorForm.SetPadded(true)
-	inspectorForm.Append("Input", ui.NewEntry(), false)
-	inspectorForm.Append("Button", ui.NewButton("Button"), false)
-	inspector.SetChild(inspectorForm)
-	// For testing
-
 	hbox.Append(inspector, false)
 	vbox.Append(hbox, true)
 

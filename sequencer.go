@@ -89,3 +89,25 @@ func (s *Sequencer) SetArea(a *ui.Area)                                      { s
 func (s *Sequencer) MouseCrossed(a *ui.Area, left bool)                      {}
 func (s *Sequencer) DragBroken(a *ui.Area)                                   {}
 func (s *Sequencer) KeyEvent(a *ui.Area, ke *ui.AreaKeyEvent) (handled bool) { return false }
+func (s *Sequencer) ClipCount() int                                          { return len(s.clips) }
+func (s *Sequencer) SetSelected(index int) {
+	s.selected = index
+	clip := s.clips[index]
+	ui, err := clip.MakeUI(win, s.RecalcLength, index)
+	handle(err)
+	inspector.SetChild(ui)
+}
+func (s *Sequencer) RecalcLength(index int) {
+	clip := s.clips[index]
+	length, err := clip.Length()
+	handle(err)
+	if length == -1 {
+		length = s.animationLength / 5
+	}
+	clipD := s.clipDatas[index]
+	if clipD.trimLength > length {
+		clipD.trimLength = length
+	}
+	clipD.length = length
+	s.clipDatas[index] = clipD
+}

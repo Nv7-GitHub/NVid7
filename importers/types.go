@@ -7,7 +7,7 @@ import (
 )
 
 type Importer interface {
-	MakeUI(win *ui.Window, recalcFunc func()) (ui.Control, error)
+	MakeUI(win *ui.Window, recalcFunc func(index int), index int) (ui.Control, error)
 	GetFrame(time int) (image.Image, error)
 	Cleanup() error
 	Length() (int, error) // -1 for infinite

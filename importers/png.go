@@ -27,28 +27,29 @@ func (i *PNGImporter) refreshCache() error {
 	return err
 }
 
-func (i *PNGImporter) MakeUI(win *ui.Window, recalcFunc func()) (ui.Control, error) {
+func (i *PNGImporter) MakeUI(win *ui.Window, recalcFunc func(int), _ int) (ui.Control, error) {
 	form := ui.NewForm()
+	form.SetPadded(true)
 	filename := ""
 	hbox := ui.NewHorizontalBox()
 
 	fileShower := ui.NewEntry()
 	saveBtn := ui.NewButton("Select")
 	saveBtn.OnClicked(func(*ui.Button) {
+		filename = ui.SaveFile(win)
+		fileShower.SetText(filename)
+		i.Path = filename
+
 		err := i.refreshCache()
 		if err != nil {
 			ui.MsgBoxError(win, "Error!", err.Error())
 			return
 		}
-
-		filename = ui.SaveFile(win)
-		fileShower.SetText(filename)
-		recalcFunc()
 	})
 
 	hbox.Append(fileShower, true)
 	hbox.Append(saveBtn, false)
-	form.Append("Output File", hbox, false)
+	form.Append("File", hbox, false)
 	return form, nil
 }
 

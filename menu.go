@@ -21,7 +21,9 @@ func createMenu() *ui.Grid {
 		if i.Selected() == 0 {
 			return
 		}
+		index := seq.ClipCount()
 		seq.AddClip(imps[i.Selected()-1]())
+		seq.SetSelected(index)
 		i.SetSelected(0)
 		seq.Update()
 	})
