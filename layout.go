@@ -1,6 +1,9 @@
 package main
 
 import (
+	"image"
+	"math"
+
 	"github.com/andlabs/ui"
 )
 
@@ -33,10 +36,40 @@ func setupUI() {
 	imGroup.SetMargined(true)
 	hbox.Append(imGroup, true)
 
+	ibox := ui.NewVerticalBox()
+
+	settings := ui.NewGroup("Settings")
+	settings.SetMargined(true)
+	sForm := ui.NewForm()
+	sForm.SetPadded(true)
+
+	outWidth := ui.NewSpinbox(1, math.MaxInt32)
+	outHeight := ui.NewSpinbox(1, math.MaxInt32)
+	outWidth.SetValue(1920)
+	outHeight.SetValue(1080)
+
+	outWidth.OnChanged(func(s *ui.Spinbox) {
+		sz := seq.Bounds()
+		seq.SetOutputDimensions(image.Rect(0, 0, s.Value(), sz.Dy()))
+		seq.Update()
+	})
+	outHeight.OnChanged(func(s *ui.Spinbox) {
+		sz := seq.Bounds()
+		seq.SetOutputDimensions(image.Rect(0, 0, sz.Dx(), s.Value()))
+		seq.Update()
+	})
+
+	sForm.Append("Output Width", outWidth, false)
+	sForm.Append("Output Height", outHeight, false)
+	settings.SetChild(sForm)
+
+	ibox.Append(settings, false)
+
 	inspector = ui.NewGroup("Inspector")
 	inspector.SetMargined(true)
+	ibox.Append(inspector, false)
 
-	hbox.Append(inspector, false)
+	hbox.Append(ibox, false)
 	vbox.Append(hbox, true)
 
 	sequ := ui.NewGroup("Sequencer")

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"image"
+
 	"github.com/Nv7-Github/NVid7/importers"
 	"github.com/andlabs/ui"
 )
@@ -16,6 +18,8 @@ type clipData struct {
 	startFrame int
 	length     int
 	trimLength int
+
+	x float64
 }
 
 type Sequencer struct {
@@ -26,6 +30,13 @@ type Sequencer struct {
 	selected  int
 	width     float64
 	height    float64
+
+	outWidth   int
+	outHeight  int
+	dragStartX float64
+	dragStartY float64
+
+	dragging bool
 
 	animationLength int
 	a               *ui.Area
@@ -39,10 +50,8 @@ func (s *Sequencer) Draw(a *ui.Area, dp *ui.AreaDrawParams) {
 	// Draw
 	for i, clip := range s.clipDatas {
 		p := ui.DrawNewPath(ui.DrawFillModeWinding)
-		x := (float64(clip.startFrame) / float64(s.animationLength) * s.width) + 2
-		w := float64(clip.trimLength) / float64(s.animationLength) * s.width
-		y := (s.layerHeight * float64(clip.yindex) * s.height) + 2
-		p.AddRectangle(x, y, w, s.layerHeight*s.height)
+		x, y, w, h := s.calcClipPos(clip)
+		p.AddRectangle(x, y, w, h)
 		p.End()
 		dp.Context.Fill(p, &rectBrush)
 		if s.selected == i {
@@ -54,9 +63,8 @@ func (s *Sequencer) Draw(a *ui.Area, dp *ui.AreaDrawParams) {
 	}
 
 	for i, clip := range s.clipDatas {
-		x := float64(clip.startFrame) / float64(s.animationLength) * s.width
-		y := s.layerHeight * float64(clip.yindex) * s.height
-		textParams.Width = float64(clip.trimLength) / float64(s.animationLength) * s.width
+		x, y, w, _ := s.calcClipPos(clip)
+		textParams.Width = w
 		textParams.String = ui.NewAttributedString(s.clips[i].Name())
 		txt := ui.DrawNewTextLayout(&textParams)
 		dp.Context.Text(txt, x+4, y+2)
@@ -65,7 +73,37 @@ func (s *Sequencer) Draw(a *ui.Area, dp *ui.AreaDrawParams) {
 }
 
 func (s *Sequencer) MouseEvent(a *ui.Area, me *ui.AreaMouseEvent) {
+	// TODO: Make scrollable
+	s.width = me.AreaWidth
+	s.height = me.AreaHeight
 
+	if me.Down == 1 {
+		mouse := image.Pt(int(me.X), int(me.Y))
+		for i, clip := range s.clipDatas {
+			x, y, w, h := s.calcClipPos(clip)
+			rct := image.Rect(int(x), int(y), int(w)+int(x), int(h)+int(y))
+			if mouse.In(rct) {
+				s.SetSelected(i)
+				s.dragging = true
+				s.dragStartX = me.X
+				s.dragStartY = me.Y
+				s.Update()
+				return
+			}
+		}
+	}
+
+	if s.dragging {
+		if len(me.Held) == 0 && me.Down == 0 {
+			s.dragging = false
+		}
+
+		s.clipDatas[s.selected].x += (me.X - s.dragStartX) / s.width
+		s.clipDatas[s.selected].startFrame = int(s.clipDatas[s.selected].x * float64(s.animationLength))
+		s.dragStartX = me.X
+		s.dragStartY = me.Y
+		s.Update()
+	}
 }
 
 func (s *Sequencer) AddClip(clip importers.Importer) {
@@ -96,6 +134,7 @@ func (s *Sequencer) SetSelected(index int) {
 	ui, err := clip.MakeUI(win, s.RecalcLength, index)
 	handle(err)
 	inspector.SetChild(ui)
+	s.Update()
 }
 func (s *Sequencer) RecalcLength(index int) {
 	clip := s.clips[index]
@@ -111,4 +150,13 @@ func (s *Sequencer) RecalcLength(index int) {
 	clipD.length = length
 	s.clipDatas[index] = clipD
 	s.Update()
+}
+
+func (s *Sequencer) SetOutputDimensions(sz image.Rectangle) {
+	s.outWidth = sz.Dx()
+	s.outHeight = sz.Dy()
+}
+
+func (s *Sequencer) Bounds() image.Rectangle {
+	return image.Rect(0, 0, s.outWidth, s.outHeight)
 }
