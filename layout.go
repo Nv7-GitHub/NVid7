@@ -5,6 +5,8 @@ import (
 )
 
 var win *ui.Window
+var inspector *ui.Group
+var seq *Sequencer
 
 func setupUI() {
 	win = ui.NewWindow("NVideo", 800, 600, true)
@@ -18,6 +20,9 @@ func setupUI() {
 	})
 	win.SetMargined(true)
 
+	outerbox := ui.NewVerticalBox()
+	outerbox.Append(createMenu(), false)
+
 	vbox := ui.NewVerticalBox()
 	vbox.SetPadded(true)
 
@@ -28,23 +33,32 @@ func setupUI() {
 	imGroup.SetMargined(true)
 	hbox.Append(imGroup, true)
 
-	inspectorGroup := ui.NewGroup("Inspector")
-	inspectorGroup.SetMargined(true)
+	inspector = ui.NewGroup("Inspector")
+	inspector.SetMargined(true)
 
+	// For testing
 	inspectorForm := ui.NewForm()
 	inspectorForm.SetPadded(true)
 	inspectorForm.Append("Input", ui.NewEntry(), false)
 	inspectorForm.Append("Button", ui.NewButton("Button"), false)
+	inspector.SetChild(inspectorForm)
+	// For testing
 
-	inspectorGroup.SetChild(inspectorForm)
-	hbox.Append(inspectorGroup, false)
+	hbox.Append(inspector, false)
 	vbox.Append(hbox, true)
 
-	area := ui.NewGroup("Sequencer")
-	area.SetMargined(true)
-	vbox.Append(area, true)
+	sequ := ui.NewGroup("Sequencer")
+	sequ.SetMargined(true)
 
-	win.SetChild(vbox)
+	seq = NewSequencer()
+	area := ui.NewArea(seq)
+	seq.SetArea(area)
+
+	sequ.SetChild(area)
+	vbox.Append(sequ, true)
+	outerbox.Append(vbox, true)
+
+	win.SetChild(outerbox)
 
 	win.Show()
 }
