@@ -110,4 +110,5 @@ func (s *Sequencer) RecalcLength(index int) {
 	}
 	clipD.length = length
 	s.clipDatas[index] = clipD
+	s.Update()
 }
