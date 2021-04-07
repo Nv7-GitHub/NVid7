@@ -27,7 +27,7 @@ func (i *PNGImporter) refreshCache() error {
 	return err
 }
 
-func (i *PNGImporter) MakeUI(win *ui.Window) (ui.Control, error) {
+func (i *PNGImporter) MakeUI(win *ui.Window, recalcFunc func()) (ui.Control, error) {
 	form := ui.NewForm()
 	filename := ""
 	hbox := ui.NewHorizontalBox()
@@ -43,6 +43,7 @@ func (i *PNGImporter) MakeUI(win *ui.Window) (ui.Control, error) {
 
 		filename = ui.SaveFile(win)
 		fileShower.SetText(filename)
+		recalcFunc()
 	})
 
 	hbox.Append(fileShower, true)
@@ -60,3 +61,4 @@ func (i *PNGImporter) GetFrame(time int) (image.Image, error) {
 
 func (i *PNGImporter) Cleanup() error       { return nil }
 func (i *PNGImporter) Length() (int, error) { return -1, nil }
+func (i *PNGImporter) Name() string         { return "PNG Clip: " + i.Path }

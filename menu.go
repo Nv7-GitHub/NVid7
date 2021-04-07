@@ -23,6 +23,7 @@ func createMenu() *ui.Grid {
 		}
 		seq.AddClip(imps[i.Selected()-1]())
 		i.SetSelected(0)
+		seq.Update()
 	})
 
 	menu.Append(impsBox, 0, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)

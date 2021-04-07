@@ -51,6 +51,8 @@ func setupUI() {
 	sequ.SetMargined(true)
 
 	seq = NewSequencer()
+	// TODO: Make slider or spinbox to change length
+	seq.SetAnimationLength(250)
 	area := ui.NewArea(seq)
 	seq.SetArea(area)
 
